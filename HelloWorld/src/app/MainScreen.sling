@@ -1,0 +1,15 @@
+import jk.widget
+import jk.widget.common
+
+class is ScreenForWidget #screen #main:
+
+var navi as NavigationWidget
+
+func initialize override
+{
+    base.initialize()
+    navi = new NavigationWidget(context)
+    navi.setWidgetEnableActionBar(false)
+    setWidget(navi)
+    navi.pushWidget(new HomeWidget(context))
+}

@@ -1,0 +1,9 @@
+{
+    vendorId "eqela"
+    projectId "tasklist"
+    title "Sling Tasklist"
+    libraries [
+        "jk-app:0.25.0"
+    ]
+
+}

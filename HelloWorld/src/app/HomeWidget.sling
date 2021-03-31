@@ -1,0 +1,24 @@
+import jk.widget.common
+
+class is TitledWidget #widget:
+
+ui LayerWidget
+{
+    heightRequest = context.getHeightValue("100px")
+    widthRequest = context.getHeightValue("100px")
+    VerticalBoxWidget vbox{
+        margin = context.getHeightValue("5mm")
+        spacing = context.getHeightValue("5mm")
+    }
+
+}
+
+func initializeWidget override
+{
+    base.initializeWidget()
+    var label = LabelWidget.forText(context, "Hello World")
+    vbox.addWidget(label)
+}
+
+func getWidgetTitle as string:
+    return "Simple Hello Wolrd"
