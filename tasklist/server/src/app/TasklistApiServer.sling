@@ -1,0 +1,25 @@
+import jk.http.server
+import jk.server.web
+
+class is WebServer:
+
+func initializeServer(server as HTTPServer) override as bool
+{
+    assert base.initializeServer (server)
+    server.setCreateOptionsResponseHandler(func(req as HTTPServerRequest)as HTTPServerResponse {
+            return TasklistConfig.getCorsUtil().handlePreflightRequest(req)
+    })
+    return true 
+}
+
+func initializeApplication override as bool
+{
+    assert base.initializeApplication()
+    var db = TasklistDatabase.forContext(ctx)
+    db.updateTables()
+    db.close()
+    return true
+}
+
+main:
+    return new this().setWorker(typeinfo TasklistApiHandler).executeMain(args)

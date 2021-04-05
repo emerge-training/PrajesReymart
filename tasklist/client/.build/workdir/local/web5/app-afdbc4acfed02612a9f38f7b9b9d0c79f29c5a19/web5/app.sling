@@ -1,0 +1,40 @@
+class name app.MainScreen header extends jk.widget.ScreenForWidget public
+{
+	import jk.lang
+	import jk.widget
+	import jk.widget.common
+	ctor
+	func initialize override
+	func main(args as array<string>) static as int #main
+}
+class name app.Tasklist header implements jk.widget.TitledWidget extends jk.widget.LayerWidget public #widget
+{
+	import jk.lang
+	import jk.lang
+	import jk.ui
+	import jk.gfx
+	import jk.widget
+	import jk.widget.common
+	ctor(context as jk.ui.GuiApplicationContext)
+	func initializeWidget override
+	func getWidgetTitle as string
+	func createWidget override
+}
+class name app.APIClient header extends jk.widget.web.JSONAPIClientWithGui public
+{
+	import jk.lang
+	import jk.widget.web
+	import jk.ui
+	import jk.widget
+	ctor
+	func getInstance static as app.APIClient
+	func create(context as jk.ui.GuiApplicationContext, parentWidget as jk.widget.Widget = null) static as app.APIClient
+	func onError(error as jk.lang.Error, callback as function<void,jk.lang.Error>) override
+	func onDefaultErrorHandler(error as jk.lang.Error) override
+	func addTask(data as jk.lang.DynamicMap, callback as function<void,jk.lang.DynamicMap>, errorCallback as function<void,jk.lang.Error>)
+	func updateTask(id as string, data as jk.lang.DynamicMap, callback as function<void,jk.lang.DynamicMap>, errorCallback as function<void,jk.lang.Error>)
+	func deleteTask(id as string, callback as function<void,jk.lang.DynamicMap>, errorCallback as function<void,jk.lang.Error>)
+	func getTasks(callback as function<void,jk.lang.DynamicMap>, errorCallback as function<void,jk.lang.Error> = null)
+	func getWidgetDefaultErrorHandler as function<void,jk.lang.Error> #getterMethod
+	func setWidgetDefaultErrorHandler(v as function<void,jk.lang.Error>) as app.APIClient #setterMethod
+}

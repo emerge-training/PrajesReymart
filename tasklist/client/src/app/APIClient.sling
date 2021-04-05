@@ -1,0 +1,50 @@
+import jk.widget.web
+import jk.ui
+import jk.widget
+
+class is JSONAPIClientWithGui:
+
+pvar widgetDefaultErrorHandler as function<void, Error>
+var instance static as this
+
+func getInstance static as this:
+    return instance
+
+func create(context as GuiApplicationContext, parentWidget as Widget = null) static as this
+{
+    assert context
+    instance = new this()
+    instance.setApiUrl("http://ec2-54-169-156-128.ap-southeast-1.compute.amazonaws.com:30300")
+    instance.setContext(context)
+    if parentWidget:
+        instance.setParentWidget(parentWidget)
+    return instance
+}
+
+func onError(error as Error, callback as function<void,Error>) override
+{
+    assert callback:
+        onDefaultErrorHandler(error)
+    base.onError(error, callback)
+}
+
+func onDefaultErrorHandler(error as Error) override
+{
+    var context = assert getContext()
+    assert error
+    assert widgetDefaultErrorHandler:
+        context.showErrorDialog(error.toString())
+    widgetDefaultErrorHandler(error)
+}
+
+func addTask(data as DynamicMap, callback as function<void, DynamicMap>, errorCallback as function<void, Error>):
+    doPost("/task/", data, callback,errorCallback)
+
+func updateTask(id as string, data as DynamicMap, callback as function<void, DynamicMap>, errorCallback as function<void, Error>):
+    doPut("/task/" .. id, data, callback, errorCallback)
+
+func deleteTask(id as string, callback as function<void, DynamicMap>, errorCallback as function<void, Error>):
+    doDelete("/task/" .. id, callback, errorCallback)
+
+func getTasks(callback as function<void, DynamicMap>, errorCallback as function<void, Error> = null):
+    doGet("/task/", callback, errorCallback)

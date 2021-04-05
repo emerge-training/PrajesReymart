@@ -1,0 +1,103 @@
+import jk.log
+import jk.sqlite
+import jk.mysql
+import jk.sql
+import jk.env
+import jk.time
+
+class:
+
+model Task
+{
+    id as string
+    name as string
+    description as string
+    timeStampAdded as long
+    timeStampLastUpdated as long
+}
+const TASK = "task"
+pvar db as MySQLDatabase
+
+func forContext(ctx as LoggingContext) static as this
+{
+    var cstr = EnvironmentVariable.get("TASK_DATABASE")
+    Log.debug(ctx, "Opening database connection: '" .. cstr .."'")
+    db = MySQLDatabase.forConnectionStringSync(ctx, cstr)
+    if not db:
+        Error.throw("failedToConnectToDatabase", cstr)
+    var v = new this()
+    v.setDb(db)
+    return v
+}
+
+func updateTable(table as SQLTableInfo)
+{
+    if not table:
+        Error.throw("nullTable", "updateTable")
+    if not db:
+        Error.throw("nullDb", "updateTable")
+    if not db.ensureTableExistsSync(table):
+        Error.throw("failedToUpdateTable", table.getName())
+}
+
+func updateTables
+{
+    var task = SQLTableInfo.forName(TASK)
+    task.addStringKeyColumn("id")
+    task.addStringColumn("name")
+    task.addStringColumn("description")
+    task.addLongColumn("timeStampAdded")
+    task.addLongColumn("timeStampLastUpdated")
+    updateTable(task)
+}
+
+func addTask(task as Task) as Task
+{
+    assert task
+    task.setId("1")
+    task.setTimeStampAddedValue(SystemClock.asUTCSeconds())
+    assert db.executeSync(db.prepareInsertStatementSync(TASK, task.toDynamicMap()))
+    return task
+}
+
+func updateTask(id as string, task as Task) as bool
+{
+    assert task
+    task.setTimeStampLastUpdatedValue(SystemClock.asUTCSeconds())
+    var criteria = new Task()
+    criteria.setId(id)
+    return db.executeSync(db.prepareUpdateStatementSync(TASK, criteria.toDynamicMap(), task.toDynamicMap()))
+}
+
+func deleteTask(id as string) as bool
+{
+    var criteria = new Task()
+    criteria.setId(id)
+    return db.executeSync(db.prepareDeleteStatementSync(TASK, criteria.toDynamicMap()))
+}
+
+func getTasks as DynamicMap
+{
+    var v = new vector<Task>
+    var it = assert db.querySync(db.prepareQueryAllStatementSync(TASK)):
+        return null
+    while it {
+        var o = it.next()
+        if not o:
+            break
+        var task = Task.forJsonObject(o)
+        if not task:
+            continue
+        v += task
+    }
+    var data = new DynamicMap()
+    data.setObject("records", v)
+    return data
+}
+
+func close
+{
+    if db:
+        db.closeSync()
+        db = null
+}

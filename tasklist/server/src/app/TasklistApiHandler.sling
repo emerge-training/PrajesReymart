@@ -1,0 +1,62 @@
+import jk.http.client
+import jk.http.worker
+
+class is HTTPRPCRouter #webapi2:
+
+model TaskRequest
+{
+    name as string
+    description as string
+}
+
+var db as TasklistDatabase
+var cors = TasklistConfig.getCorsUtil()
+
+func getDatabase as TasklistDatabase
+{
+    if not db {
+        db = TasklistDatabase.forContext(getCtx())
+        db.updateTables()
+    }
+    return db
+}
+
+func postProcess(req as HTTPWorkerRequest, resp as HTTPWorkerResponse) override:
+    cors.handleWorkerRequest(req, resp)
+
+GET "/task/"
+{
+    var tasks = assert getDatabase().getTasks()
+    sendOk tasks
+}
+
+POST "/task/"
+{
+    var requestData = assert TaskRequest.forJsonString(req.getBodyString()):
+        sendError "invalidRequest"
+    var task = new TasklistDatabase.Task()
+    task.setName(requestData.getName())
+    task.setDescription(requestData.getDescription())
+    assert getDatabase().addTask(task):
+        sendError "failedToSaveTask"
+    sendOk
+}
+
+PUT "/task/:id"
+{
+    var requestData = assert TaskRequest.forJsonString(req.getBodyString())
+        sendError "invalidRequest"
+    var task = new TasklistDatabase.Task()
+    task.setName(requestData.getName())
+    task.setDescription(requestData.getDescription())
+    assert getDatabase().updateTask(vars.getString("id"), task):
+        sendError "failedToUpdateTask"
+    sendOk
+}
+
+DELETE "/task/:id"
+{
+    assert getDatabase().deleteTask(vars.getString("id")):
+        sendError "failedToDeleteTask"
+    sendOk
+}
