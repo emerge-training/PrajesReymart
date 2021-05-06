@@ -1,0 +1,92 @@
+import jk.widget.common
+import jk.widget.form
+
+class is TitledWidget #widget:
+
+model TaskModel
+{
+    id as string
+    name as string
+    description as string
+}
+
+ui LayerWidget
+{
+    VerticalScrollerWidget{
+        scrollBarDisabled = false
+        LayerWithBackgroundColorWidget container{
+            color = Color.white()
+            HorizontalBoxWidget{
+                VerticalBoxWidget form{
+                    AlignWidget{
+                        margin = 1.0
+                        LabelWidget submitMessage{
+                            text = "test"
+                        }
+                    }
+                    TextInputWidget idInput{
+                        placeholder = "ID"
+                    }
+                    TextInputWidget nameInput{
+                        placeholder = "Name"
+                    }
+                    TextInputWidget descInput{
+                        placeholder = "Description"
+                    }
+                    TextButtonWidget addTaskButton{
+                        text = "Add Task"
+                        clickHandler = func{
+                            var task = new TaskModel()
+                            task.setId(idInput.getWidgetText())
+                            task.setName(nameInput.getWidgetText())
+                            task.setDescription(descInput.getWidgetText())
+                            APIClient.getInstance().addTask(task.toDynamicMap(), func(res as DynamicMap){
+                                submitMessage.setWidgetText("Successfully Added Task")
+                                var task = nameInput.getWidgetText() .. " - " .. descInput.getWidgetText()
+                                var lblTask = LabelWidget.forText(context, task)
+                                var hbox = HorizontalBoxWidget.forContext(context, 0, context.getHeightValue("0.5mm"))
+                                hbox.addWidget(lblTask)
+                                list.addWidget(AlignWidget.forWidget(context, hbox), 1.0)
+                                idInput.setWidgetText("")
+                                nameInput.setWidgetText("")
+                                descInput.setWidgetText("")
+                            }, func(err as Error){
+                                submitMessage.setWidgetText("Failed to save task")
+                            })
+                        }
+                    }
+                    
+                }
+                VerticalBoxWidget list{
+                    margin = context.getHeightValue("5mm")
+                    spacing = context.getHeightValue("5mm")
+                }
+            }
+        }
+    }
+}
+
+func initializeWidget override
+{
+    base.initializeWidget()
+    APIClient.getInstance().getTasks(func(response as DynamicMap){
+        var data = assert response.getDynamicMap("data")
+        var records = data.getDynamicVector("records")
+        if not records || records.getSize() < 1{
+            list.addWidget(AlignWidget.forWidget(context, LabelWidget.forText(context, "No Record")), 1.0)
+        }
+        else {
+            foreach record as DynamicMap in records.toVector() {
+                var task = record.getString("name") .. " - " .. record.getString("description")
+                var lblTask = LabelWidget.forText(context, task)
+                var hbox = HorizontalBoxWidget.forContext(context, 0, context.getHeightValue("0.5mm"))
+                hbox.addWidget(lblTask)
+                list.addWidget(AlignWidget.forWidget(context, hbox), 1.0)
+            }
+        }
+    })
+}
+
+func getWidgetTitle as string:
+    return "Eqela Task list"
+    
