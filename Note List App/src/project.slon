@@ -1,0 +1,9 @@
+{
+    vendorId "eqela"
+    projectId "noteslist"
+    title "Sling Noteslist"
+    license "All rights reserved."
+    libraries [
+        "jk-db:0.19.0"
+    ]
+}
