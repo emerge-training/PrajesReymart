@@ -22,7 +22,7 @@ func forContext(ctx as LoggingContext) static as this
 {
     var cstr = EnvironmentVariable.get("TASK_DATABASE")
     Log.debug(ctx, "Opening database connection: '" .. cstr .."'")
-    db = MySQLDatabase.forConnectionStringSync(ctx, cstr)
+    db = MySQLDatabase.forConnectionStringSync(ctx, "localhost:jellen:jellen:jellen_db:ssl:utf8")
     if not db:
         Error.throw("failedToConnectToDatabase", cstr)
     var v = new this()
